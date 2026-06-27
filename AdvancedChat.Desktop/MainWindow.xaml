@@ -1,0 +1,410 @@
+<Window x:Class="AdvancedChat.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Advanced Chat" Height="780" Width="1200" MinHeight="680" MinWidth="1000"
+        Background="#F1F5F9" FontFamily="Segoe UI Variable, Segoe UI"
+        WindowStartupLocation="CenterScreen"
+        TextOptions.TextRenderingMode="ClearType"
+        TextOptions.TextFormattingMode="Ideal">
+    <Window.Resources>
+        <!-- Colors -->
+        <Color x:Key="AccentColor">#2563EB</Color>
+        <Color x:Key="AccentHoverColor">#1D4ED8</Color>
+        <Color x:Key="SurfaceColor">#FFFFFF</Color>
+        <Color x:Key="SurfaceAltColor">#F8FAFC</Color>
+        <Color x:Key="BorderColor">#E2E8F0</Color>
+        <Color x:Key="BorderHoverColor">#CBD5E1</Color>
+        <Color x:Key="TextPrimaryColor">#0F172A</Color>
+        <Color x:Key="TextSecondaryColor">#475569</Color>
+        <Color x:Key="TextMutedColor">#94A3B8</Color>
+        <Color x:Key="DangerColor">#EF4444</Color>
+        <Color x:Key="SuccessColor">#16A34A</Color>
+        <Color x:Key="WarningColor">#F59E0B</Color>
+        <Color x:Key="InfoBgColor">#EFF6FF</Color>
+
+        <!-- Brushes -->
+        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+        <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource SurfaceAltColor}" />
+        <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+        <SolidColorBrush x:Key="BorderHoverBrush" Color="{StaticResource BorderHoverColor}" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+        <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+
+        <!-- Shadows -->
+        <DropShadowEffect x:Key="ShadowSm" BlurRadius="4" Opacity="0.04" Direction="270" ShadowDepth="1" />
+        <DropShadowEffect x:Key="ShadowMd" BlurRadius="12" Opacity="0.07" Direction="270" ShadowDepth="4" />
+        <DropShadowEffect x:Key="ShadowLg" BlurRadius="24" Opacity="0.09" Direction="270" ShadowDepth="8" />
+
+        <!-- Base Styles -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <Style x:Key="Caption" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="TextWrapping" Value="NoWrap" />
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <!-- TextBox -->
+        <Style TargetType="TextBox">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style TargetType="PasswordBox">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <!-- Buttons -->
+        <Style x:Key="BaseButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="600" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Effect" Value="{StaticResource ShadowSm}" />
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="Background" Value="#FEF2F2" />
+            <Setter Property="BorderBrush" Value="#FECACA" />
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        </Style>
+
+        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="MinWidth" Value="36" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+
+        <!-- Control Templates -->
+        <Style TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.85" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45" />
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ListBox -->
+        <Style TargetType="ListBox">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <!-- Panel Styles -->
+        <Style x:Key="Panel" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Effect" Value="{StaticResource ShadowMd}" />
+        </Style>
+
+        <!-- Room Item Template -->
+        <DataTemplate x:Key="RoomTemplate">
+            <Border Background="Transparent" Padding="12,10" Margin="0,0,0,4"
+                    CornerRadius="8" BorderThickness="1" BorderBrush="Transparent"
+                    Effect="{StaticResource ShadowSm}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" />
+                        <TextBlock Text="{Binding Description, TargetNullValue='No description'}"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontSize="12" Margin="0,2,0,0" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding MemberCount, StringFormat='{}{0} members'}"
+                                   FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                   FontWeight="SemiBold" />
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Message Bubble Template -->
+        <DataTemplate x:Key="MessageTemplate">
+            <Border Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="10" Padding="12,10"
+                    Margin="0,0,0,6" Effect="{StaticResource ShadowSm}">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,4">
+                        <TextBlock Text="{Binding UserName}" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" FontSize="13" />
+                        <TextBlock Text="{Binding SentAt, StringFormat={}{0:g}}"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="11" DockPanel.Dock="Right"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding Text}" FontSize="13"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               LineHeight="20" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- ScrollViewer Style -->
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ========== TOP BAR ========== -->
+        <Border Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                Padding="20,14" Effect="{StaticResource ShadowSm}">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE8BD;" FontFamily="Segoe MDL2 Assets" FontSize="22"
+                               Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="Advanced Chat" FontSize="20" FontWeight="Bold"
+                               Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <Border x:Name="StatusBadge" DockPanel.Dock="Right"
+                        Background="{StaticResource SurfaceAltBrush}"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                        CornerRadius="20" Padding="14,6">
+                    <DockPanel>
+                        <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource TextMutedBrush}"
+                                 VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <TextBlock x:Name="StatusText" Text="Not connected"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   FontWeight="SemiBold" FontSize="12" />
+                    </DockPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <Grid Grid.Row="1" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== LEFT SIDEBAR ===== -->
+            <Border Background="{StaticResource SurfaceBrush}" BorderBrush="Transparent"
+                    BorderThickness="0" Padding="16,16,12,16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Connection Section -->
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,12">
+                            <TextBlock Text="Connection" Style="{StaticResource SectionTitle}" />
+                            <Border x:Name="ConnectionStatusDot" DockPanel.Dock="Right"
+                                    Background="#FEF3C7" CornerRadius="4" Padding="8,2">
+                                <TextBlock x:Name="ConnectionStatusText" Text="Offline"
+                                           FontSize="10" FontWeight="Bold"
+                                           Foreground="#92400E" />
+                            </Border>
+                        </DockPanel>
+
+                        <TextBlock Text="Server URL" Style="{StaticResource Caption}" />
+                        <TextBox x:Name="ServerUrlBox" Text="http://localhost:5017" Margin="0,0,0,8" />
+
+                        <TextBlock Text="Email" Style="{StaticResource Caption}" />
+                        <TextBox x:Name="EmailBox" Margin="0,0,0,8" />
+
+                        <TextBlock Text="Password" Style="{StaticResource Caption}" />
+                        <PasswordBox x:Name="PasswordBox" Margin="0,0,0,12" />
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="RegisterBtn" Content="Register" Click="Register_Click"
+                                    Style="{StaticResource SecondaryButton}" />
+                            <Button x:Name="LoginBtn" Grid.Column="2" Content="Sign In"
+                                    Click="Login_Click" Style="{StaticResource PrimaryButton}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0" Margin="0,0,0,12" />
+
+                    <!-- Room Creation -->
+                    <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                        <TextBlock Text="Create Room" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
+                        <TextBox x:Name="NewRoomNameBox" Margin="0,0,0,6" />
+                        <TextBox x:Name="NewRoomDescriptionBox" Margin="0,0,0,8" />
+                        <Button x:Name="CreateRoomBtn" Content="&#x2795;  Create Room" Click="CreateRoom_Click"
+                                Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0" Margin="0,0,0,12" />
+
+                    <!-- Room List -->
+                    <DockPanel Grid.Row="4">
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                            <TextBlock Text="Your Rooms" Style="{StaticResource SectionTitle}"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="RefreshRoomsBtn" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets"
+                                    Click="RefreshRooms_Click" Style="{StaticResource IconButton}"
+                                    DockPanel.Dock="Right" ToolTip="Refresh rooms" />
+                        </DockPanel>
+                        <ListBox x:Name="RoomsList" SelectionChanged="RoomsList_SelectionChanged"
+                                 ItemTemplate="{StaticResource RoomTemplate}" />
+                    </DockPanel>
+                </Grid>
+            </Border>
+
+            <!-- Divider -->
+            <Border Grid.Column="1" Width="1" Background="{StaticResource BorderBrush}" Margin="0" />
+
+            <!-- ===== RIGHT PANEL ===== -->
+            <Border Grid.Column="2" Background="{StaticResource SurfaceBrush}" BorderBrush="Transparent"
+                    BorderThickness="0" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Chat Header -->
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                            Background="{StaticResource SurfaceBrush}" Padding="20,14"
+                            Effect="{StaticResource ShadowSm}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock x:Name="RoomTitleText" Text="Select a room"
+                                           FontSize="18" FontWeight="Bold" />
+                                <TextBlock x:Name="RoomDescriptionText"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="13" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <Border x:Name="InviteSection" Grid.Column="1"
+                                    Background="{StaticResource SurfaceAltBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                    CornerRadius="8" Padding="12,8" VerticalAlignment="Center">
+                                <DockPanel>
+                                    <Button x:Name="InviteBtn" Content="&#x2795;" FontFamily="Segoe MDL2 Assets"
+                                            Click="AddUser_Click" Style="{StaticResource IconButton}"
+                                            Width="32" Height="32" Padding="0" MinWidth="0" MinHeight="0"
+                                            DockPanel.Dock="Right" Margin="8,0,0,0" ToolTip="Add user to room" />
+                                    <TextBox x:Name="InviteEmailBox" Text=""
+                                             MinHeight="32" FontSize="12"
+                                             VerticalContentAlignment="Center" Padding="8,4" />
+                                </DockPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- Messages Area -->
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceAltBrush}" Padding="16,12">
+                        <ScrollViewer x:Name="MessagesScroll" VerticalScrollBarVisibility="Auto"
+                                      PanningMode="VerticalOnly">
+                            <ItemsControl x:Name="MessagesList"
+                                          ItemTemplate="{StaticResource MessageTemplate}" />
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Message Input -->
+                    <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0" Background="{StaticResource SurfaceBrush}"
+                            Padding="16,12,16,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="MessageBox" MinHeight="42"
+                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top" Padding="12,8"
+                                     KeyDown="MessageBox_KeyDown" />
+                            <Button x:Name="SendBtn" Grid.Column="1"
+                                    Content="&#xE725;" FontFamily="Segoe MDL2 Assets"
+                                    Click="Send_Click" Style="{StaticResource PrimaryButton}"
+                                    Width="48" Height="42" Margin="10,0,0,0"
+                                    FontSize="18" Padding="0" ToolTip="Send (Enter)" />
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

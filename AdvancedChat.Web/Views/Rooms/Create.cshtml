@@ -1,0 +1,39 @@
+@model AdvancedChat.Web.Models.CreateRoomViewModel
+
+@{
+    ViewData["Title"] = "Create room";
+}
+
+<div class="row justify-content-center" style="padding-top: 2rem;">
+    <div class="col-lg-6">
+        <div class="adv-card">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">New Room</p>
+                    <h2>Create a chat room</h2>
+                </div>
+            </div>
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size:0.85rem"></div>
+                <div class="adv-field" style="margin-top:0">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control adv-input" autocomplete="off" placeholder="Enter room name" />
+                    <span asp-validation-for="Name" class="text-danger" style="font-size:0.85rem"></span>
+                </div>
+                <div class="adv-field">
+                    <label asp-for="Description"></label>
+                    <textarea asp-for="Description" class="form-control adv-input" rows="3" placeholder="Optional description"></textarea>
+                    <span asp-validation-for="Description" class="text-danger" style="font-size:0.85rem"></span>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-primary adv-action" type="submit"><i class="bi bi-plus-lg me-1"></i>Create</button>
+                    <a class="btn btn-light adv-secondary" asp-action="Index"><i class="bi bi-x-lg me-1"></i>Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
