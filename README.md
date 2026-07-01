@@ -1,6 +1,6 @@
-# Advanced Chat
+# HubRooms Web Application
 
-Real-time messaging platform. ASP.NET Core 8 + SignalR.
+HubRooms is a comprehensive real-time chat platform built on ASP.NET Core 8 MVC and SignalR. Create dynamic chat rooms, send private direct messages, and explore the Swagger-powered REST API.
 
 ## Features
 
