@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="landing">
+    <div class="landing-badge">
+        <i class="bi bi-lightning-fill"></i>
+        Real-time messaging powered by SignalR
+    </div>
+
+    <h1>Chat with speed,<br>connect in real&nbsp;time.</h1>
+
+    <p class="lead">
+        Advanced Chat is a modern real-time messaging platform built with ASP.NET Core and SignalR.
+        Create chat rooms, invite team members, and communicate instantly.
+    </p>
+
+    <div class="landing-actions">
+        <a class="btn btn-primary btn-lg adv-action px-4" asp-area="Identity" asp-page="/Account/Register">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started
+        </a>
+        <a class="btn btn-light btn-lg adv-secondary px-4" asp-area="Identity" asp-page="/Account/Login">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </a>
+    </div>
+
+    <div class="landing-features">
+        <div class="landing-feature">
+            <i class="bi bi-chat-square-text"></i>
+            <h3>Chat Rooms</h3>
+            <p>Create dedicated rooms for teams and projects.</p>
+        </div>
+        <div class="landing-feature">
+            <i class="bi bi-shield-check"></i>
+            <h3>Private Messages</h3>
+            <p>Send direct messages to any user.</p>
+        </div>
+        <div class="landing-feature">
+            <i class="bi bi-people"></i>
+            <h3>Team Collaboration</h3>
+            <p>Invite members by email to join your rooms.</p>
+        </div>
+        <div class="landing-feature">
+            <i class="bi bi-lightning"></i>
+            <h3>Real-Time</h3>
+            <p>Instant delivery powered by SignalR WebSockets.</p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,207 @@
+@model AdvancedChat.Web.Models.RoomDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+    var messageCount = Model.Messages.Count;
+}
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="detail-header">
+            <div>
+                <p class="adv-kicker">Chat Room</p>
+                <h1 class="h3">@Model.Name</h1>
+                <p class="text-muted">@(Model.Description ?? "Private chat room")</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <span id="connectionState" class="adv-status">Connecting</span>
+                <a class="btn btn-light adv-secondary" asp-action="Index"><i class="bi bi-arrow-left me-1"></i>Back</a>
+            </div>
+        </div>
+
+        <div id="messages" class="chat-log mb-3">
+            @if (messageCount == 0)
+            {
+                <div class="chat-empty">No messages yet. Start the conversation!</div>
+            }
+            @foreach (var message in Model.Messages)
+            {
+                <div class="chat-message">
+                    <div class="chat-meta">@message.UserName <span>@message.SentAt.ToLocalTime().ToString("g")</span></div>
+                    <div class="chat-text">@message.Text</div>
+                </div>
+            }
+        </div>
+
+        <form id="messageForm" class="chat-compose">
+            <textarea id="messageInput" class="form-control adv-input chat-input" maxlength="2000" autocomplete="off" placeholder="Write a message…" rows="1"></textarea>
+            <button class="btn btn-primary" type="submit" id="sendBtn">
+                <i class="bi bi-send-fill"></i>
+            </button>
+            <small id="charCount" class="char-count">2000</small>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="adv-card mb-3">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Members</p>
+                    <h2 class="h5">@Model.Members.Count member@(Model.Members.Count == 1 ? "" : "s")</h2>
+                </div>
+            </div>
+            <ul class="member-list list-group">
+                @foreach (var member in Model.Members)
+                {
+                    <li class="list-group-item">@member</li>
+                }
+            </ul>
+        </div>
+
+        <div class="adv-card">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Invite</p>
+                    <h2 class="h5">Add user</h2>
+                </div>
+            </div>
+            <form asp-action="AddUser" method="post">
+                <input type="hidden" name="RoomId" value="@Model.Id" />
+                <div class="adv-field" style="margin-top:0">
+                    <label for="emailInput">Email address</label>
+                    <input id="emailInput" class="form-control adv-input" type="email" name="Email" placeholder="user@example.com" required />
+                </div>
+                <button class="btn btn-outline-primary adv-action w-100 mt-2" type="submit" id="addUserBtn">
+                    <i class="bi bi-person-plus me-1"></i>Add to room
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        (function() {
+            const roomId = @Model.Id;
+            const messagesEl = document.getElementById("messages");
+            const messageInput = document.getElementById("messageInput");
+            const connectionState = document.getElementById("connectionState");
+            const sendBtn = document.getElementById("sendBtn");
+            const charCount = document.getElementById("charCount");
+            const toastContainer = document.getElementById("toastContainer");
+
+            // ---- Toast ----
+            function showToast(text, type) {
+                const el = document.createElement("div");
+                el.className = "toast-item toast-" + (type || "info");
+                el.textContent = text;
+                toastContainer.appendChild(el);
+                setTimeout(() => { el.classList.add("toast-hide"); setTimeout(() => el.remove(), 300); }, 4000);
+            }
+
+            // ---- Auto-scroll to bottom ----
+            function scrollToBottom() {
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            }
+            scrollToBottom();
+
+            // ---- Auto-resize textarea ----
+            function autoResize() {
+                messageInput.style.height = "auto";
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 160) + "px";
+            }
+
+            // ---- Char count ----
+            function updateCharCount() {
+                var remaining = 2000 - messageInput.value.length;
+                charCount.textContent = remaining;
+                charCount.style.color = remaining < 50 ? (remaining < 20 ? "#ef4444" : "#f59e0b") : "#94a3b8";
+            }
+
+            messageInput.addEventListener("input", function() { autoResize(); updateCharCount(); });
+
+            // ---- Connection ----
+            function setConnectionState(text) {
+                connectionState.textContent = text;
+                connectionState.dataset.state = text.toLowerCase();
+            }
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveMessage", message => {
+                if (message.roomId !== roomId) return;
+                const item = document.createElement("div");
+                item.className = "chat-message";
+                const sentAt = new Date(message.sentAt).toLocaleString();
+                item.innerHTML = "<div class=\"chat-meta\">" + escapeHtml(message.userName) + " <span>" + sentAt + "</span></div><div class=\"chat-text\">" + escapeHtml(message.text) + "</div>";
+                messagesEl.appendChild(item);
+                scrollToBottom();
+            });
+
+            connection.start()
+                .then(() => {
+                    setConnectionState("Connected");
+                    return connection.invoke("JoinRoom", roomId);
+                })
+                .catch(() => setConnectionState("Offline"));
+
+            connection.onreconnecting(() => { setConnectionState("Reconnecting"); showToast("Connection lost, reconnecting…", "warning"); });
+            connection.onreconnected(() => {
+                setConnectionState("Connected");
+                showToast("Reconnected", "success");
+                connection.invoke("JoinRoom", roomId);
+            });
+            connection.onclose(() => { setConnectionState("Offline"); showToast("Disconnected", "error"); });
+
+            // ---- Send message ----
+            function sendMessage() {
+                const text = messageInput.value.trim();
+                if (!text) return;
+                sendBtn.disabled = true;
+                connection.invoke("SendMessage", roomId, text)
+                    .then(() => {
+                        messageInput.value = "";
+                        autoResize();
+                        updateCharCount();
+                        sendBtn.disabled = false;
+                        messageInput.focus();
+                    })
+                    .catch(err => {
+                        showToast("Send failed: " + err.message, "error");
+                        sendBtn.disabled = false;
+                    });
+            }
+
+            document.getElementById("messageForm").addEventListener("submit", event => {
+                event.preventDefault();
+                sendMessage();
+            });
+
+            messageInput.addEventListener("keydown", e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // ---- Add user loading state ----
+            document.querySelector("#addUserBtn")?.closest("form")?.addEventListener("submit", function() {
+                const btn = document.getElementById("addUserBtn");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Adding…';
+            });
+
+            function escapeHtml(value) {
+                const div = document.createElement("div");
+                div.innerText = value;
+                return div.innerHTML;
+            }
+        })();
+    </script>
+}

@@ -1,0 +1,294 @@
+@model AdvancedChat.Web.Models.AdvancedChatViewModel
+
+@{
+    ViewData["Title"] = "Adv Chat";
+    var firstRoomId = Model.Rooms.FirstOrDefault()?.Id;
+    var firstUserId = Model.Users.FirstOrDefault()?.Id;
+    var hasRooms = Model.Rooms.Any();
+    var hasUsers = Model.Users.Any();
+}
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="adv-chat-shell">
+    <section class="adv-hero">
+        <div>
+            <p class="adv-kicker">Realtime workspace</p>
+            <h1>Advanced Chat</h1>
+            <p class="adv-subtitle">Manage rooms, broadcast messages, and reach users privately from one focused console.</p>
+        </div>
+        <div class="adv-stats">
+            <div>
+                <span>@Model.Rooms.Count</span>
+                <label>Rooms</label>
+            </div>
+            <div>
+                <span>@Model.Users.Count</span>
+                <label>Users</label>
+            </div>
+        </div>
+    </section>
+
+    <div class="adv-workspace">
+        <section class="adv-card adv-card-rooms">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Room Control</p>
+                    <h2>Create and remove rooms</h2>
+                </div>
+            </div>
+
+            <form asp-action="QuickCreate" method="post" class="adv-field-row" id="quickCreateForm">
+                <div class="adv-field">
+                    <label for="createRoomName">Create Room</label>
+                    <input id="createRoomName" class="form-control adv-input" name="name" autocomplete="off" placeholder="Room name" required minlength="1" />
+                </div>
+                <button class="btn btn-primary adv-action" type="submit" id="createRoomBtn">Create Room</button>
+            </form>
+
+            <form asp-action="Delete" method="post" class="adv-field-row" id="deleteRoomForm">
+                <div class="adv-field">
+                    <label for="deleteRoomId">Delete Room</label>
+                    <select id="deleteRoomId" class="form-select adv-input" name="roomId" disabled="@(!hasRooms)">
+                        @foreach (var room in Model.Rooms)
+                        {
+                            <option value="@room.Id">@room.Name</option>
+                        }
+                    </select>
+                </div>
+                <button class="btn btn-outline-danger adv-action" type="submit" disabled="@(!hasRooms)" id="deleteRoomBtn">Delete Room</button>
+            </form>
+        </section>
+
+        <section class="adv-card adv-card-public">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Public Channel</p>
+                    <h2>Broadcast to a room</h2>
+                </div>
+                <a id="openRoomLink" class="btn btn-light adv-secondary" asp-action="Details" asp-route-id="@firstRoomId" style="@(hasRooms ? "" : "display:none")">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open Room
+                </a>
+            </div>
+
+            <div class="adv-field">
+                <label for="roomSelect">Select Room</label>
+                <select id="roomSelect" class="form-select adv-input" disabled="@(!hasRooms)">
+                    @if (!hasRooms)
+                    {
+                        <option value="">No rooms available</option>
+                    }
+                    @foreach (var room in Model.Rooms)
+                    {
+                        <option value="@room.Id" selected="@(room.Id == firstRoomId)">@room.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="adv-compose">
+                <input id="publicMessage" class="form-control adv-input" autocomplete="off" placeholder="Write a room message" disabled="@(!hasRooms)" />
+                <button id="sendPublicButton" class="btn btn-info adv-action" type="button" disabled="@(!hasRooms)">Send Public</button>
+            </div>
+        </section>
+
+        <section class="adv-card adv-card-private">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Direct Message</p>
+                    <h2>Send privately</h2>
+                </div>
+            </div>
+
+            <div class="adv-field">
+                <label for="userSelect">Select User</label>
+                <select id="userSelect" class="form-select adv-input" disabled="@(!hasUsers)">
+                    @if (!hasUsers)
+                    {
+                        <option value="">No other users</option>
+                    }
+                    @foreach (var user in Model.Users)
+                    {
+                        <option value="@user.Id" selected="@(user.Id == firstUserId)">@user.Email</option>
+                    }
+                </select>
+            </div>
+
+            <div class="adv-compose">
+                <input id="privateMessage" class="form-control adv-input" autocomplete="off" placeholder="Write a private message" disabled="@(!hasUsers)" />
+                <button id="sendPrivateButton" class="btn btn-secondary adv-action" type="button" disabled="@(!hasUsers)">Send Private</button>
+            </div>
+        </section>
+
+        <section class="adv-card adv-card-feed">
+            <div class="adv-card-header">
+                <div>
+                    <p class="adv-kicker">Live Feed</p>
+                    <h2>Message List</h2>
+                </div>
+                <span id="connectionState" class="adv-status">Connecting</span>
+            </div>
+            <ul id="messageList" class="adv-message-list">
+                <li class="adv-empty">Messages will appear here as they arrive.</li>
+            </ul>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        (function() {
+            const roomSelect = document.getElementById("roomSelect");
+            const userSelect = document.getElementById("userSelect");
+            const messageList = document.getElementById("messageList");
+            const openRoomLink = document.getElementById("openRoomLink");
+            const connectionState = document.getElementById("connectionState");
+            const toastContainer = document.getElementById("toastContainer");
+            const detailsBaseUrl = "@Url.Action("Details", "Rooms")";
+            const hasRooms = @Json.Serialize(hasRooms);
+            const hasUsers = @Json.Serialize(hasUsers);
+
+            // ---- Toast system ----
+            function showToast(text, type) {
+                const el = document.createElement("div");
+                el.className = "toast-item toast-" + (type || "info");
+                el.textContent = text;
+                toastContainer.appendChild(el);
+                setTimeout(() => { el.classList.add("toast-hide"); setTimeout(() => el.remove(), 300); }, 4000);
+            }
+
+            // ---- Connection ----
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("SystemMessage", message => {
+                addFeedItem(message, "system");
+                showToast(message, "info");
+            });
+
+            connection.on("ReceiveMessage", message => {
+                const roomName = getSelectedText(roomSelect) || "Room " + message.roomId;
+                const time = new Date(message.sentAt).toLocaleTimeString();
+                addFeedItem("<strong>" + escapeHtml(message.userName) + "</strong> to <em>" + escapeHtml(roomName) + "</em> <span class='feed-time'>" + time + "</span><br>" + escapeHtml(message.text), "message");
+            });
+
+            connection.on("ReceivePrivateMessage", message => {
+                const time = new Date(message.sentAt).toLocaleTimeString();
+                addFeedItem("<strong>" + escapeHtml(message.userName) + "</strong> (private) <span class='feed-time'>" + time + "</span><br>" + escapeHtml(message.text), "private");
+            });
+
+            connection.start()
+                .then(() => {
+                    setConnectionState("Connected");
+                    if (hasRooms) return joinSelectedRoom();
+                })
+                .catch(err => {
+                    setConnectionState("Offline");
+                    addFeedItem("Connection failed: " + escapeHtml(err.message), "error");
+                });
+
+            connection.onreconnecting(() => { setConnectionState("Reconnecting"); showToast("Connection lost, reconnecting...", "warning"); });
+            connection.onreconnected(() => { setConnectionState("Connected"); showToast("Reconnected", "success"); if (hasRooms) joinSelectedRoom(); });
+            connection.onclose(() => { setConnectionState("Offline"); showToast("Disconnected", "error"); });
+
+            // ---- Room selection ----
+            roomSelect?.addEventListener("change", () => {
+                updateRoomLink();
+                if (hasRooms) joinSelectedRoom();
+            });
+
+            // ---- Send public message ----
+            const publicInput = document.getElementById("publicMessage");
+            const publicBtn = document.getElementById("sendPublicButton");
+
+            function sendPublic() {
+                const roomId = Number(roomSelect.value);
+                const text = publicInput.value.trim();
+                if (!roomId || !text) return;
+                publicBtn.disabled = true;
+                connection.invoke("SendMessage", roomId, text)
+                    .then(() => { publicInput.value = ""; publicBtn.disabled = false; publicInput.focus(); })
+                    .catch(err => { showToast("Send failed: " + err.message, "error"); publicBtn.disabled = false; addFeedItem(err.message, "error"); });
+            }
+
+            publicBtn?.addEventListener("click", sendPublic);
+            publicInput?.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendPublic(); } });
+
+            // ---- Send private message ----
+            const privateInput = document.getElementById("privateMessage");
+            const privateBtn = document.getElementById("sendPrivateButton");
+
+            function sendPrivate() {
+                const userId = userSelect.value;
+                const text = privateInput.value.trim();
+                if (!userId || !text) return;
+                privateBtn.disabled = true;
+                connection.invoke("SendPrivateMessage", userId, text)
+                    .then(() => { privateInput.value = ""; privateBtn.disabled = false; privateInput.focus(); })
+                    .catch(err => { showToast("Send failed: " + err.message, "error"); privateBtn.disabled = false; addFeedItem(err.message, "error"); });
+            }
+
+            privateBtn?.addEventListener("click", sendPrivate);
+            privateInput?.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendPrivate(); } });
+
+            // ---- Join room ----
+            function joinSelectedRoom() {
+                if (!roomSelect?.value || connection.state !== signalR.HubConnectionState.Connected) return Promise.resolve();
+                return connection.invoke("JoinRoom", Number(roomSelect.value))
+                    .catch(err => addFeedItem(err.message, "error"));
+            }
+
+            // ---- Room link ----
+            function updateRoomLink() {
+                if (!openRoomLink || !roomSelect?.value) return;
+                openRoomLink.href = detailsBaseUrl + "/" + roomSelect.value;
+            }
+
+            // ---- Feed ----
+            function addFeedItem(html, type) {
+                messageList.querySelector(".adv-empty")?.remove();
+                const item = document.createElement("li");
+                item.className = "adv-feed-item";
+                if (type === "error") item.classList.add("adv-feed-error");
+                else if (type === "private") item.classList.add("adv-feed-private");
+                else if (type === "system") item.classList.add("adv-feed-system");
+                else if (type === "message") item.classList.add("adv-feed-message");
+                item.innerHTML = html;
+                messageList.appendChild(item);
+                messageList.scrollTop = messageList.scrollHeight;
+            }
+
+            function getSelectedText(select) {
+                return select?.selectedOptions?.[0]?.textContent;
+            }
+
+            function setConnectionState(text) {
+                connectionState.textContent = text;
+                connectionState.dataset.state = text.toLowerCase();
+            }
+
+            function escapeHtml(value) {
+                var div = document.createElement("div");
+                div.innerText = value;
+                return div.innerHTML;
+            }
+
+            updateRoomLink();
+
+            // ---- Form loading states ----
+            document.getElementById("quickCreateForm")?.addEventListener("submit", function() {
+                const btn = document.getElementById("createRoomBtn");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Creating...';
+            });
+
+            document.getElementById("deleteRoomForm")?.addEventListener("submit", function() {
+                const btn = document.getElementById("deleteRoomBtn");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Deleting...';
+            });
+        })();
+    </script>
+}
